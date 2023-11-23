@@ -194,15 +194,32 @@ const updateBookHandler = (request, h) => {
   const { bookId } = request.params;
 
   const {
-    name,
-    year,
-    author,
-    summary,
-    publisher,
-    pageCount,
-    readPage,
-    reading,
+    name, year, author, summary, publisher, pageCount, readPage, reading,
   } = request.payload;
+
+  const validationSchema = {
+    name: stringValidation,
+    year: numberValidation,
+    author: stringValidation,
+    summary: stringValidation,
+    publisher: stringValidation,
+    pageCount: numberValidation,
+    readPage: numberValidation,
+    reading: booleanValidation
+  };
+
+  // Validasi properti objek payload
+  const invalidFields = Object.keys(validationSchema)
+    .filter((prop) => !validationSchema[prop](request.payload[prop]));
+
+  if (invalidFields.length > 0) {
+    const response = h.response({
+      status: 'fail',
+      message: `Buku gagal ditambahkan. Format data tidak sesuai pada properti: ${invalidFields.join(', ')}`,
+    });
+    response.code(400);
+    return response;
+  }
 
   const finished = pageCount === readPage;
   const updatedAt = new Date().toISOString();
